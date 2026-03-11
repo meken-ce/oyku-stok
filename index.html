@@ -732,9 +732,11 @@ body {
     <div class="form-group">
       <label class="form-label">Kategori</label>
       <select class="form-select" id="stokKategori">
-        <option value="dogalgaz">Doğalgaz İşleri</option>
-        <option value="kombi">Sohben ve Kombi Satışları</option>
-        <option value="tesisat">Sıhhi Tesisat İşleri</option>
+        <option value="dogalgaz">Doğalgaz Malzemeleri</option>
+        <option value="kombi">Sohben & Kombi</option>
+        <option value="tesisat">Sıhhi Tesisat Malzemeleri</option>
+        <option value="mekanik">Mekanik İşler Malzemeleri</option>
+        <option value="elAleti">El Aletleri & Malzemeleri</option>
       </select>
     </div>
     <div style="display:flex;gap:10px;">
@@ -1172,7 +1174,8 @@ function renderStok(filter = '') {
   }
 
   const katColors = {
-    dogalgaz: '#ef4444', kombi: '#3b82f6', tesisat: '#06b6d4'
+    dogalgaz: '#ef4444', kombi: '#3b82f6', tesisat: '#06b6d4',
+    mekanik: '#f59e0b', elAleti: '#8b5cf6'
   };
 
   el.innerHTML = filtered.map(s => `
