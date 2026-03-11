@@ -137,7 +137,7 @@ td{padding:10px 12px;border-bottom:1px solid #13161c;font-size:13px}tr:hover td{
   </nav>
   <div class="sidebar-footer">
     <select class="input" id="currentUser" style="padding:5px 8px;font-size:12px;margin-bottom:6px" onchange="currentUser=this.value">
-      <option>Kullanıcı 1</option><option>Kullanıcı 2</option>
+      <option>Hüseyin</option><option>Ayşe</option>
     </select>
     <div id="syncStatus" class="sync-ok" style="font-size:11px;color:var(--text3)"><span class="sync-dot"></span><span id="syncText">Bağlı</span></div>
   </div>
@@ -191,7 +191,7 @@ const db = firebase.firestore();
 // STATE
 // ═══════════════════════════════════════
 let products=[],movements=[],invoices=[],sales=[],customers=[],santiyes=[];
-let currentUser='Kullanıcı 1';
+let currentUser='Hüseyin';
 
 // ═══════════════════════════════════════
 // HELPERS
@@ -263,13 +263,22 @@ function renderDashboard(){
   const low=products.filter(p=>(p.stok||0)<=(p.minStok||0));
   const totalAlacak=customers.reduce((s,c)=>s+(c.alacak||0),0);
   const totalBorc=customers.reduce((s,c)=>s+(c.borc||0),0);
+  const netBakiye=totalAlacak-totalBorc;
+  // Borçlu müşteriler (alacağımız var)
+  const borcluMusteri=customers.filter(c=>(c.alacak||0)>0).sort((a,b)=>(b.alacak||0)-(a.alacak||0));
+  // Bize borçlu tedarikçiler (borcumuz var)
+  const borcluTedarikciler=customers.filter(c=>(c.borc||0)>0).sort((a,b)=>(b.borc||0)-(a.borc||0));
   document.getElementById('dashContent').innerHTML=`
     <div class="grid-stats">
-      ${[{l:'Ürün',v:products.length,c:'var(--blue)'},{l:'Stok Değeri',v:fmtP(tv),c:'var(--gold)',s:1},{l:'Kritik Stok',v:low.length,c:low.length?'var(--red)':'var(--green)'},{l:'Toplam Alacak',v:fmtP(totalAlacak),c:'var(--green)',s:1},{l:'Toplam Borç',v:fmtP(totalBorc),c:'var(--red)',s:1},{l:'Şantiye',v:santiyes.length,c:'var(--purple)'}].map(s=>`<div class="card"><div class="stat-label">${s.l}</div><div class="stat-number" style="color:${s.c};${s.s?'font-size:18px':''}">${s.v}</div></div>`).join('')}
+      ${[{l:'Ürün Çeşidi',v:products.length,c:'var(--blue)'},{l:'Stok Değeri',v:fmtP(tv),c:'var(--gold)',s:1},{l:'Kritik Stok',v:low.length,c:low.length?'var(--red)':'var(--green)'},{l:'Toplam Alacak',v:fmtP(totalAlacak),c:'var(--green)',s:1},{l:'Toplam Borç',v:fmtP(totalBorc),c:'var(--red)',s:1},{l:'Net Bakiye',v:fmtP(netBakiye),c:netBakiye>=0?'var(--green)':'var(--red)',s:1},{l:'Şantiye',v:santiyes.length,c:'var(--purple)'},{l:'Müşteri/Firma',v:customers.length,c:'var(--blue)'}].map(s=>`<div class="card"><div class="stat-label">${s.l}</div><div class="stat-number" style="color:${s.c};${s.s?'font-size:18px':''}">${s.v}</div></div>`).join('')}
     </div>
     <div class="grid-2">
       <div class="card"><div class="flex-between" style="margin-bottom:12px"><b style="font-size:14px">Kritik Stok</b></div>${low.length===0?'<div style="color:var(--green);font-size:13px">Stoklar yeterli</div>':low.map(p=>`<div class="flex-between" style="padding:6px 0;border-bottom:1px solid #1a1d24;cursor:pointer" onclick="openProductDetail('${p.id}')"><div><div style="font-size:13px">${p.ad}</div><div style="font-size:11px;color:var(--text3)">${p.kategori||''}</div></div><div class="text-right"><span class="badge badge-danger">${p.stok} ${p.birim||''}</span></div></div>`).join('')}</div>
       <div class="card"><div class="flex-between" style="margin-bottom:12px"><b style="font-size:14px">Son İşlemler</b></div>${movements.slice(0,6).map(m=>`<div class="history-item" style="cursor:pointer" onclick="openProductDetail('${m.urunId}')"><span style="color:${m.tur==='giris'?'var(--green)':'var(--red)'};font-weight:700;width:20px">${m.tur==='giris'?'↓':'↑'}</span><div style="flex:1;font-size:13px">${getProdName(m.urunId)}</div><div class="mono" style="font-size:13px;color:${m.tur==='giris'?'var(--green)':'var(--red)'}">${m.tur==='giris'?'+':'−'}${m.miktar}</div></div>`).join('')||'<div style="color:var(--text3);font-size:13px">Henüz hareket yok</div>'}</div>
+    </div>
+    <div class="grid-2" style="margin-top:14px">
+      <div class="card"><div class="flex-between" style="margin-bottom:12px"><b style="font-size:14px;color:var(--green)">Alacaklarımız</b><span class="mono" style="color:var(--green);font-size:14px;font-weight:700">${fmtP(totalAlacak)}</span></div>${borcluMusteri.length===0?'<div style="color:var(--text3);font-size:13px">Alacak yok</div>':borcluMusteri.slice(0,6).map(c=>`<div class="flex-between" style="padding:6px 0;border-bottom:1px solid #1a1d24;cursor:pointer" onclick="openCustDetail('${c.id}')"><div style="font-size:13px">${c.ad} <span class="badge badge-info" style="margin-left:4px">${c.tur||'Müşteri'}</span></div><div class="mono" style="color:var(--green);font-size:13px">${fmtP(c.alacak||0)}</div></div>`).join('')}</div>
+      <div class="card"><div class="flex-between" style="margin-bottom:12px"><b style="font-size:14px;color:var(--red)">Borçlarımız</b><span class="mono" style="color:var(--red);font-size:14px;font-weight:700">${fmtP(totalBorc)}</span></div>${borcluTedarikciler.length===0?'<div style="color:var(--text3);font-size:13px">Borç yok</div>':borcluTedarikciler.slice(0,6).map(c=>`<div class="flex-between" style="padding:6px 0;border-bottom:1px solid #1a1d24;cursor:pointer" onclick="openCustDetail('${c.id}')"><div style="font-size:13px">${c.ad} <span class="badge badge-info" style="margin-left:4px">${c.tur||'Tedarikçi'}</span></div><div class="mono" style="color:var(--red);font-size:13px">${fmtP(c.borc||0)}</div></div>`).join('')}</div>
     </div>`;
   const badge=document.getElementById('criticalBadge');
   if(low.length>0){badge.style.display='inline-flex';badge.textContent=low.length+' Kritik'}else badge.style.display='none';
@@ -493,18 +502,20 @@ function renderCustomers(){
   document.getElementById('custContent').innerHTML=`
     <div class="flex-gap" style="margin-bottom:16px"><button class="btn btn-primary" onclick="openCustModal()">+ Yeni Müşteri/Firma</button></div>
     <div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table>
-      <thead><tr><th>Firma / Müşteri</th><th class="hide-mobile">Telefon</th><th class="text-right" style="color:var(--green)">Alacak</th><th class="text-right" style="color:var(--red)">Borç</th><th class="text-right">Bakiye</th><th class="text-center">İşlem</th></tr></thead>
-      <tbody>${customers.length===0?'<tr><td colspan="6" class="text-center" style="color:var(--text3);padding:30px">Müşteri yok</td></tr>':customers.map(c=>{
+      <thead><tr><th>Firma / Müşteri</th><th>Tür</th><th class="hide-mobile">Telefon</th><th class="text-right" style="color:var(--green)">Alacak</th><th class="text-right" style="color:var(--red)">Borç</th><th class="text-right">Bakiye</th><th class="text-center">İşlem</th></tr></thead>
+      <tbody>${customers.length===0?'<tr><td colspan="7" class="text-center" style="color:var(--text3);padding:30px">Müşteri yok</td></tr>':customers.map(c=>{
         const bakiye=(c.alacak||0)-(c.borc||0);
-        return`<tr class="clickable-row" onclick="openCustDetail('${c.id}')"><td style="font-weight:500">${c.ad}</td><td class="hide-mobile" style="color:var(--text2)">${c.telefon||'—'}</td><td class="text-right mono" style="color:var(--green)">${fmtP(c.alacak||0)}</td><td class="text-right mono" style="color:var(--red)">${fmtP(c.borc||0)}</td><td class="text-right mono" style="color:${bakiye>=0?'var(--green)':'var(--red)'}"><b>${fmtP(bakiye)}</b></td><td onclick="event.stopPropagation()" class="text-center"><button class="btn btn-sm btn-secondary" onclick="openPaymentModal('${c.id}')">💵 Tahsilat</button></td></tr>`}).join('')}</tbody>
+        const turBadge=c.tur==='Tedarikçi'?'badge-warn':c.tur==='Bayi'?'badge-purple':'badge-info';
+        return`<tr class="clickable-row" onclick="openCustDetail('${c.id}')"><td style="font-weight:500">${c.ad}</td><td><span class="badge ${turBadge}">${c.tur||'Müşteri'}</span></td><td class="hide-mobile" style="color:var(--text2)">${c.telefon||'—'}</td><td class="text-right mono" style="color:var(--green)">${fmtP(c.alacak||0)}</td><td class="text-right mono" style="color:var(--red)">${fmtP(c.borc||0)}</td><td class="text-right mono" style="color:${bakiye>=0?'var(--green)':'var(--red)'}"><b>${fmtP(bakiye)}</b></td><td onclick="event.stopPropagation()" class="text-center"><button class="btn btn-sm btn-secondary" onclick="openPaymentModal('${c.id}')">💵 Tahsilat</button></td></tr>`}).join('')}</tbody>
     </table></div></div>`;
 }
 
 function openCustModal(id){
   const c=id?getCust(id):null;
+  const turOpts=['Müşteri','Tedarikçi','Bayi'].map(t=>`<option ${c&&c.tur===t?'selected':''}>${t}</option>`).join('');
   openModal(`<div class="flex-between" style="margin-bottom:18px"><h3 style="font-size:16px;font-weight:600">${c?'Düzenle':'Yeni Müşteri/Firma'}</h3><span style="cursor:pointer" onclick="closeModal()">✕</span></div>
   <div class="form-group">
-    <div><label class="label">Firma / Müşteri Adı</label><input class="input" id="cN" value="${c?c.ad:''}"></div>
+    <div class="grid-form-2"><div><label class="label">Firma / Müşteri Adı</label><input class="input" id="cN" value="${c?c.ad:''}"></div><div><label class="label">Tür</label><select class="input" id="cTur">${turOpts}</select></div></div>
     <div class="grid-form-2"><div><label class="label">Telefon</label><input class="input" id="cT" value="${c?c.telefon||'':''}"></div><div><label class="label">Adres</label><input class="input" id="cA" value="${c?c.adres||'':''}"></div></div>
     <div><label class="label">Not</label><input class="input" id="cNot" value="${c?c.not||'':''}"></div>
     <div class="flex-end"><button class="btn btn-secondary" onclick="closeModal()">İptal</button><button class="btn btn-primary" onclick="saveCust('${id||''}')">${c?'Güncelle':'Kaydet'}</button></div>
@@ -512,7 +523,7 @@ function openCustModal(id){
 }
 
 async function saveCust(id){
-  const d={ad:document.getElementById('cN').value,telefon:document.getElementById('cT').value,adres:document.getElementById('cA').value,not:document.getElementById('cNot').value};
+  const d={ad:document.getElementById('cN').value,tur:document.getElementById('cTur').value,telefon:document.getElementById('cT').value,adres:document.getElementById('cA').value,not:document.getElementById('cNot').value};
   if(!d.ad.trim())return toast('Ad gerekli','warn');
   setSync('saving');closeModal();
   if(id)await db.collection('customers').doc(id).update(d);else await db.collection('customers').add({...d,alacak:0,borc:0});
@@ -524,19 +535,24 @@ function openCustDetail(id){
   const bakiye=(c.alacak||0)-(c.borc||0);
   const cInv=invoices.filter(i=>i.musteriId===id);
   const cSales=sales.filter(s=>s.musteriId===id);
-  openModal(`<div class="flex-between" style="margin-bottom:18px"><div><div style="font-size:18px;font-weight:700">${c.ad}</div><div style="font-size:12px;color:var(--text2)">${c.telefon||''} ${c.adres?'· '+c.adres:''}</div></div><span style="cursor:pointer" onclick="closeModal()">✕</span></div>
-    <div class="detail-stats" style="grid-template-columns:1fr 1fr 1fr"><div class="detail-stat"><div class="detail-stat-value" style="color:var(--green)">${fmtP(c.alacak||0)}</div><div class="detail-stat-label">Alacak</div></div><div class="detail-stat"><div class="detail-stat-value" style="color:var(--red)">${fmtP(c.borc||0)}</div><div class="detail-stat-label">Borç</div></div><div class="detail-stat"><div class="detail-stat-value" style="color:${bakiye>=0?'var(--green)':'var(--red)'}">${fmtP(bakiye)}</div><div class="detail-stat-label">Bakiye</div></div></div>
+  const turBadge=c.tur==='Tedarikçi'?'badge-warn':c.tur==='Bayi'?'badge-purple':'badge-info';
+  openModal(`<div class="flex-between" style="margin-bottom:18px"><div><div style="font-size:18px;font-weight:700">${c.ad} <span class="badge ${turBadge}" style="font-size:11px">${c.tur||'Müşteri'}</span></div><div style="font-size:12px;color:var(--text2)">${c.telefon||''} ${c.adres?'· '+c.adres:''}</div></div><span style="cursor:pointer" onclick="closeModal()">✕</span></div>
+    <div class="detail-stats" style="grid-template-columns:1fr 1fr 1fr"><div class="detail-stat"><div class="detail-stat-value" style="color:var(--green)">${fmtP(c.alacak||0)}</div><div class="detail-stat-label">Alacak</div></div><div class="detail-stat"><div class="detail-stat-value" style="color:var(--red)">${fmtP(c.borc||0)}</div><div class="detail-stat-label">Borç</div></div><div class="detail-stat"><div class="detail-stat-value" style="color:${bakiye>=0?'var(--green)':'var(--red)'}">${fmtP(bakiye)}</div><div class="detail-stat-label">Net Bakiye</div></div></div>
     <div style="margin-bottom:10px"><b style="font-size:12px;color:var(--text2)">FATURALAR (${cInv.length})</b></div>
-    ${cInv.slice(0,5).map(i=>`<div class="history-item"><span class="badge ${i.tur==='alis'?'badge-success':'badge-danger'}">${i.tur==='alis'?'Alış':'Satış'}</span><span style="flex:1;font-size:12px">${i.faturaNo||'—'}</span><span class="mono" style="color:var(--gold)">${fmtP(i.toplam||0)}</span><span style="font-size:11px;color:var(--text3);margin-left:8px">${fmtD(i.faturaTarihi||i.tarih)}</span></div>`).join('')||'<div style="color:var(--text3);font-size:12px">Fatura yok</div>'}
-    <div class="flex-gap" style="margin-top:16px"><button class="btn btn-success" onclick="closeModal();openPaymentModal('${c.id}')">💵 Tahsilat Yap</button><button class="btn btn-secondary" onclick="closeModal();openCustModal('${c.id}')">Düzenle</button></div>`);
+    ${cInv.slice(0,5).map(i=>`<div class="history-item"><span class="badge ${i.tur==='alis'?'badge-success':'badge-danger'}">${i.tur==='alis'?'Alış':'Satış'}</span><span style="flex:1;font-size:12px">${i.faturaNo||'—'} <span style="color:var(--text3)">${i.odeme||''}</span></span><span class="mono" style="color:var(--gold)">${fmtP(i.toplam||0)}</span><span style="font-size:11px;color:var(--text3);margin-left:8px">${fmtD(i.faturaTarihi||i.tarih)}</span></div>`).join('')||'<div style="color:var(--text3);font-size:12px">Fatura yok</div>'}
+    ${cSales.length>0?`<div style="margin:10px 0"><b style="font-size:12px;color:var(--text2)">FATURASIZ SATIŞLAR (${cSales.length})</b></div>${cSales.slice(0,5).map(s=>`<div class="history-item"><span class="badge badge-warn">Faturasız</span><span style="flex:1;font-size:12px">${getProdName(s.urunId)} x${s.miktar} <span style="color:var(--text3)">${s.odeme||''}</span></span><span class="mono" style="color:var(--gold)">${fmtP(s.tutar||0)}</span><span style="font-size:11px;color:var(--text3);margin-left:8px">${fmtD(s.tarih)}</span></div>`).join('')}`:''}
+    <div class="flex-gap" style="margin-top:16px"><button class="btn btn-success" onclick="closeModal();openPaymentModal('${c.id}')">💵 Tahsilat / Ödeme</button><button class="btn btn-secondary" onclick="closeModal();openCustModal('${c.id}')">Düzenle</button><button class="btn btn-secondary" style="color:var(--red)" onclick="deleteCust('${c.id}')">Sil</button></div>`);
 }
+
+async function deleteCust(id){if(!confirm('Silmek istediğinize emin misiniz?'))return;setSync('saving');closeModal();await db.collection('customers').doc(id).delete();toast('Silindi','warn')}
 
 function openPaymentModal(custId){
   const c=getCust(custId);if(!c)return;
+  const bakiye=(c.alacak||0)-(c.borc||0);
   openModal(`<div class="flex-between" style="margin-bottom:18px"><h3 style="font-size:16px;font-weight:600">Tahsilat / Ödeme</h3><span style="cursor:pointer" onclick="closeModal()">✕</span></div>
-  <div style="padding:10px 14px;background:var(--bg);border-radius:8px;margin-bottom:16px"><b>${c.ad}</b><div style="font-size:12px;color:var(--text2)">Alacak: ${fmtP(c.alacak||0)} · Borç: ${fmtP(c.borc||0)}</div></div>
+  <div style="padding:10px 14px;background:var(--bg);border-radius:8px;margin-bottom:16px"><b>${c.ad}</b> <span class="badge badge-info">${c.tur||'Müşteri'}</span><div style="font-size:12px;color:var(--text2);margin-top:4px">Alacak: <span style="color:var(--green)">${fmtP(c.alacak||0)}</span> · Borç: <span style="color:var(--red)">${fmtP(c.borc||0)}</span> · Bakiye: <span style="color:${bakiye>=0?'var(--green)':'var(--red)'}"><b>${fmtP(bakiye)}</b></span></div></div>
   <div class="form-group">
-    <div class="grid-form-2"><div><label class="label">İşlem Türü</label><select class="input" id="payType"><option value="tahsilat">Tahsilat (Alacak azalt)</option><option value="odeme">Ödeme (Borç azalt)</option></select></div><div><label class="label">Tutar</label><input class="input" type="number" step="0.01" id="payAmt"></div></div>
+    <div class="grid-form-2"><div><label class="label">İşlem Türü</label><select class="input" id="payType"><option value="tahsilat">Tahsilat (Alacak azalt)</option><option value="odeme">Ödeme (Borç azalt)</option><option value="alacak_ekle">Alacak Ekle</option><option value="borc_ekle">Borç Ekle</option></select></div><div><label class="label">Tutar (₺)</label><input class="input" type="number" step="0.01" id="payAmt"></div></div>
     <div class="grid-form-2"><div><label class="label">Ödeme Yöntemi</label><select class="input" id="payMethod"><option>Nakit</option><option>Kredi Kartı</option><option>Havale/EFT</option><option>Çek</option></select></div><div><label class="label">Not</label><input class="input" id="payNote"></div></div>
     <div class="flex-end"><button class="btn btn-secondary" onclick="closeModal()">İptal</button><button class="btn btn-primary" onclick="savePayment('${custId}')">Kaydet</button></div>
   </div>`);
@@ -544,10 +560,16 @@ function openPaymentModal(custId){
 
 async function savePayment(custId){
   const amt=Number(document.getElementById('payAmt').value);const type=document.getElementById('payType').value;
+  const method=document.getElementById('payMethod').value;const note=document.getElementById('payNote').value;
   if(amt<=0)return toast('Tutar gerekli','warn');
   setSync('saving');closeModal();
   const cRef=db.collection('customers').doc(custId);const cDoc=await cRef.get();const cData=cDoc.data()||{};
-  if(type==='tahsilat')await cRef.update({alacak:Math.max(0,(cData.alacak||0)-amt)});else await cRef.update({borc:Math.max(0,(cData.borc||0)-amt)});
+  if(type==='tahsilat')await cRef.update({alacak:Math.max(0,(cData.alacak||0)-amt)});
+  else if(type==='odeme')await cRef.update({borc:Math.max(0,(cData.borc||0)-amt)});
+  else if(type==='alacak_ekle')await cRef.update({alacak:(cData.alacak||0)+amt});
+  else if(type==='borc_ekle')await cRef.update({borc:(cData.borc||0)+amt});
+  // Tahsilat kaydını da tut
+  await db.collection('payments').add({musteriId:custId,tur:type,tutar:amt,odemeYontemi:method,not:note,tarih:firebase.firestore.FieldValue.serverTimestamp(),kullanici:currentUser});
   toast('Kaydedildi');
 }
 
