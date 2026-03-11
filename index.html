@@ -8,6 +8,7 @@
 <style>
 :root{--pri:#1a56db;--pri-bg:#eff6ff;--ok:#059669;--ok-bg:#ecfdf5;--err:#dc2626;--err-bg:#fef2f2;--warn:#d97706;--warn-bg:#fffbeb;--pur:#7c3aed;--pur-bg:#f5f3ff;--org:#ea580c;--org-bg:#fff7ed;--g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;--g300:#cbd5e1;--g400:#94a3b8;--g500:#64748b;--g600:#475569;--g700:#334155;--g800:#1e293b;--g900:#0f172a;--r:12px;--sh:0 1px 3px rgba(0,0,0,.1)}
 *{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(--g800);min-height:100vh}
 
 /* TOPBAR */
@@ -23,7 +24,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 .bot .ni svg{width:22px;height:22px}
 
 /* LAYOUT */
-.mc{padding:68px 12px 80px;max-width:600px;margin:0 auto}
+.mc{padding:68px 12px 100px;max-width:600px;margin:0 auto;min-height:100vh}
 .pg{display:none}.pg.on{display:block;animation:fi .25s ease}
 @keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
@@ -97,7 +98,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 
 <div class="mc">
   <!-- ANA SAYFA -->
-  <div id="pgHome" class="pg on"><div class="sg" id="homeStats"></div><div class="cd"><div style="font-size:15px;font-weight:700;margin-bottom:12px">Son İşlemler</div><div id="recentList"></div></div></div>
+  <div id="pgHome" class="pg on">
+    <div class="sg" id="homeStats"></div>
+    <div class="cd"><div style="font-size:15px;font-weight:700;margin-bottom:12px">Son İşlemler</div><div id="recentList"></div></div>
+    <div class="cd"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:15px;font-weight:700">Yaklaşan Vadeler</div><span class="bg" style="background:var(--warn-bg);color:var(--warn)" id="vadeCnt2">0</span></div><div id="vadeAlert"></div></div>
+  </div>
 
   <!-- STOK -->
   <div id="pgStok" class="pg">
@@ -334,6 +339,13 @@ function rHome(){
     else if(r._t==='o'){ic='₺';bg='var(--ok-bg)';co='var(--ok)';lb=r.aciklama||'Ödeme'}
     else{ic=r.tip==='giris'?'📥':'📤';bg=r.tip==='giris'?'var(--ok-bg)':'var(--err-bg)';co=r.tip==='giris'?'var(--ok)':'var(--err)';lb=(r.stokAd||'Stok')+' '+(r.tip==='giris'?'+':'-')+r.miktar}
     return `<div class="li"><div class="lic" style="background:${bg};color:${co}">${ic}</div><div style="flex:1;min-width:0"><div class="lit">${c?.ad||r.stokAd||'-'}</div><div class="lid">${lb}</div></div><div style="text-align:right"><div style="font-size:11px;color:var(--g400)">${D(r.tarih)}</div></div></div>`}).join('');
+  // Vade alerts
+  const now=NOW(),wk=new Date(now);wk.setDate(wk.getDate()+7);
+  const vi=ode.filter(o=>o.vadeTarihi).map(o=>({...o,vd:TD(o.vadeTarihi),dl:DB(TD(o.vadeTarihi),now)})).filter(i=>i.dl<=7).sort((a,b)=>a.vd-b.vd).slice(0,5);
+  $('vadeCnt2').textContent=vi.length;
+  const va=$('vadeAlert');
+  if(!vi.length){va.innerHTML='<div class="emp"><p>Yaklaşan vade yok</p></div>'}
+  else{va.innerHTML=vi.map(v=>{const c=cari.find(x=>x.id===v.cariId);const bd=v.dl<0?'<span class="bg" style="background:var(--err-bg);color:var(--err)">Gecikmiş</span>':v.dl===0?'<span class="bg" style="background:var(--warn-bg);color:var(--warn)">Bugün</span>':`<span class="bg" style="background:var(--pri-bg);color:var(--pri)">${v.dl} gün</span>`;return `<div class="li"><div style="flex:1;min-width:0"><div class="lit">${c?.ad||'-'}</div><div class="lid">${D(v.vadeTarihi)}</div></div><div style="text-align:right"><div class="lia neg">₺${F(v.tutar)}</div>${bd}</div></div>`}).join('')}
 }
 
 // ===================== STOK =====================
