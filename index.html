@@ -732,11 +732,9 @@ body {
     <div class="form-group">
       <label class="form-label">Kategori</label>
       <select class="form-select" id="stokKategori">
-        <option value="elektronik">Elektronik</option>
-        <option value="mekanik">Mekanik</option>
-        <option value="pnomatik">Pnömatik</option>
-        <option value="hidrolik">Hidrolik</option>
-        <option value="diger">Diğer</option>
+        <option value="dogalgaz">Doğalgaz İşleri</option>
+        <option value="kombi">Sohben ve Kombi Satışları</option>
+        <option value="tesisat">Sıhhi Tesisat İşleri</option>
       </select>
     </div>
     <div style="display:flex;gap:10px;">
@@ -1174,8 +1172,7 @@ function renderStok(filter = '') {
   }
 
   const katColors = {
-    elektronik: '#3b82f6', mekanik: '#ef4444', pnomatik: '#f59e0b',
-    hidrolik: '#06b6d4', diger: '#8b5cf6'
+    dogalgaz: '#ef4444', kombi: '#3b82f6', tesisat: '#06b6d4'
   };
 
   el.innerHTML = filtered.map(s => `
@@ -1206,7 +1203,7 @@ window.editStok = function(id) {
   document.getElementById('stokEditId').value = id;
   document.getElementById('stokModalTitle').textContent = 'Ürün Düzenle';
   document.getElementById('stokAd').value = s.ad || '';
-  document.getElementById('stokKategori').value = s.kategori || 'diger';
+  document.getElementById('stokKategori').value = s.kategori || 'dogalgaz';
   document.getElementById('stokMiktar').value = s.miktar || '';
   document.getElementById('stokBirim').value = s.birim || 'adet';
   document.getElementById('stokAlis').value = s.alisFiyat || '';
