@@ -454,13 +454,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 // API
 // ═══════════════════════════════════════
 async function apiGet(action) {
-  const res = await fetch(API_URL + '?action=' + action);
+  const res = await fetch(API_URL + '?action=' + action, { redirect: 'follow' });
   return await res.json();
 }
 
 async function apiPost(data) {
   const res = await fetch(API_URL, {
     method: 'POST',
+    redirect: 'follow',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(data)
   });
@@ -884,7 +885,7 @@ async function testConnection() {
   const status = document.getElementById('connectionStatus');
   status.innerHTML = '<span style="color:var(--yellow);">Test ediliyor...</span>';
   try {
-    const res = await fetch(url + '?action=ping');
+    const res = await fetch(url + '?action=ping', { redirect: 'follow' });
     const data = await res.json();
     if (data.success) {
       status.innerHTML = '<span style="color:var(--green);">✓ Bağlantı başarılı! ' + data.message + '</span>';
@@ -892,7 +893,7 @@ async function testConnection() {
       status.innerHTML = '<span style="color:var(--red);">✗ Hata: ' + (data.error || 'Bilinmeyen') + '</span>';
     }
   } catch (e) {
-    status.innerHTML = '<span style="color:var(--red);">✗ Bağlantı kurulamadı. URL\'yi kontrol edin.</span>';
+    status.innerHTML = '<span style="color:var(--red);">✗ Bağlantı kurulamadı. URL\'yi kontrol edin. Hata: ' + e.message + '</span>';
   }
 }
 
