@@ -100,6 +100,13 @@ textarea.ft{resize:vertical;min-height:50px}
   <div class="fg"><select id="loginUser" class="fs" style="text-align:center;font-weight:700"><option value="">Kullanıcı Seçin</option><option value="huseyin">Hüseyin</option><option value="ayse">Ayşe</option></select></div>
   <div class="fg"><input type="password" id="loginPass" class="fi" placeholder="Şifre" style="text-align:center"></div>
   <button class="btn bp bf" onclick="doLogin()" style="height:46px;font-size:15px">Giriş Yap</button>
+  <div style="margin-top:14px"><span style="font-size:12px;color:var(--pri);cursor:pointer;font-weight:600" onclick="$('loginPg').querySelector('.lcard').style.display='none';$('sifreUnuttumDiv').style.display='block'">Şifremi Unuttum</span></div>
+</div>
+<div id="sifreUnuttumDiv" style="display:none;background:#fff;border-radius:24px;padding:36px 24px;width:100%;max-width:360px;box-shadow:0 25px 50px rgba(0,0,0,.15);text-align:center">
+  <div style="font-size:20px;font-weight:800;color:var(--pri);margin-bottom:16px">Şifre Sıfırlama</div>
+  <div class="fg"><label class="fl">Kullanıcı</label><select id="sifreResetUser" class="fs" style="text-align:center;font-weight:700"><option value="huseyin">Hüseyin</option><option value="ayse">Ayşe</option></select></div>
+  <button class="btn bw bf" onclick="resetSifre()" style="height:44px;font-size:14px">Şifreyi 1234'e Sıfırla</button>
+  <div style="margin-top:14px"><span style="font-size:12px;color:var(--pri);cursor:pointer;font-weight:600" onclick="$('sifreUnuttumDiv').style.display='none';$('loginPg').querySelector('.lcard').style.display='block'">← Giriş Ekranına Dön</span></div>
 </div>
 </div>
 
@@ -107,7 +114,13 @@ textarea.ft{resize:vertical;min-height:50px}
 <div id="app" style="display:none">
 <div class="top">
   <div class="logo">Öykü<span>Mek</span></div>
-  <div class="ub" onclick="doLogout()"><div class="av" id="uAv">H</div><span id="uNm">Hüseyin</span></div>
+  <div class="ub" onclick="$('ayarMenu').style.display=$('ayarMenu').style.display==='block'?'none':'block'"><div class="av" id="uAv">H</div><span id="uNm">Hüseyin</span></div>
+  <div id="ayarMenu" style="display:none;position:absolute;top:52px;right:12px;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.15);padding:6px;min-width:180px;z-index:10000">
+    <div style="padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;border-radius:8px" onmouseover="this.style.background='var(--g100)'" onmouseout="this.style.background=''" onclick="openModal('sifreM');$('ayarMenu').style.display='none'">🔑 Şifre Değiştir</div>
+    <div style="padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;border-radius:8px" onmouseover="this.style.background='var(--g100)'" onmouseout="this.style.background=''" onclick="openKasaBasDuzenle();$('ayarMenu').style.display='none'">💰 Kasa Bakiye Düzenle</div>
+    <div style="height:1px;background:var(--g200);margin:4px 0"></div>
+    <div style="padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;border-radius:8px;color:var(--err)" onmouseover="this.style.background='var(--err-bg)'" onmouseout="this.style.background=''" onclick="doLogout();$('ayarMenu').style.display='none'">🚪 Çıkış Yap</div>
+  </div>
 </div>
 
 <div class="mc">
@@ -161,6 +174,7 @@ textarea.ft{resize:vertical;min-height:50px}
       <div class="tabs" id="cariTabs"><div class="tab on" onclick="sCariTab('hr')">Hareketler</div><div class="tab" onclick="sCariTab('oz')">Özet</div></div>
       <div id="cariTabC"></div>
       <div style="display:flex;gap:8px;margin-top:10px"><button class="btn bs bsm" style="flex:1" onclick="openCariIslem('borc')">+ Borç</button><button class="btn bd bsm" style="flex:1" onclick="openCariIslem('alacak')">+ Alacak</button></div>
+      <div style="display:flex;gap:8px;margin-top:8px"><button class="btn bo bsm" style="flex:1" onclick="editCari()" >✏️ Düzenle</button><button class="btn bo bsm" style="flex:1;color:var(--err);border-color:var(--err)" onclick="deleteCari()">🗑 Cariyi Sil</button></div>
     </div>
   </div>
 
@@ -336,6 +350,23 @@ textarea.ft{resize:vertical;min-height:50px}
   <button class="btn bp bf" onclick="saveSabit()" style="height:46px;font-size:15px">Kaydet</button>
 </div></div>
 
+<!-- Şifre Değiştir -->
+<div class="mo" id="sifreM" onclick="clMO(event)"><div class="md"><div class="mh"></div>
+  <div class="mt">🔑 Şifre Değiştir</div>
+  <div class="fg"><label class="fl">Mevcut Şifre</label><input type="password" class="fi" id="sifreMevcut"></div>
+  <div class="fg"><label class="fl">Yeni Şifre</label><input type="password" class="fi" id="sifreYeni"></div>
+  <div class="fg"><label class="fl">Yeni Şifre (Tekrar)</label><input type="password" class="fi" id="sifreYeni2"></div>
+  <button class="btn bp bf" onclick="saveSifre()" style="height:46px;font-size:15px">Şifreyi Değiştir</button>
+</div></div>
+
+<!-- Kasa Bakiye Düzenle -->
+<div class="mo" id="kasaBasDuzenleM" onclick="clMO(event)"><div class="md"><div class="mh"></div>
+  <div class="mt">💰 Kasa Başlangıç Bakiyesi</div>
+  <div class="fg"><label class="fl">Mevcut Bakiye</label><div id="kasaMevcutBak" style="font-size:18px;font-weight:800;color:var(--pri);padding:8px 0">₺0,00</div></div>
+  <div class="fg"><label class="fl">Yeni Başlangıç Tutarı (₺)</label><input type="number" class="fi" id="kasaBasYeniTut" step="0.01"></div>
+  <button class="btn bp bf" onclick="saveKasaBasDuzenle()" style="height:46px;font-size:15px">Güncelle</button>
+</div></div>
+
 <!-- ====== JAVASCRIPT ====== -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -386,9 +417,86 @@ function bal(cid){
   return{borc:b,alacak:a,net:b-a};
 }
 
-// ============ AUTH ============
-window.doLogin=function(){const u=$('loginUser').value,p=$('loginPass').value;if(!u)return toast('Kullanıcı seçin','er');if(p!=='1234')return toast('Yanlış şifre','er');user=u;$('loginPg').style.display='none';$('app').style.display='block';$('uNm').textContent=u==='huseyin'?'Hüseyin':'Ayşe';$('uAv').textContent=u[0].toUpperCase();init()};
-window.doLogout=function(){if(!confirm('Çıkış?'))return;user=null;$('app').style.display='none';$('loginPg').style.display='flex'};
+// ============ AUTH (Firebase şifre) ============
+window.doLogin=async function(){
+  const u=$('loginUser').value,p=$('loginPass').value;
+  if(!u)return toast('Kullanıcı seçin','er');
+  try{
+    const snap=await getDoc(doc(db,'ayarlar','sifreler'));
+    let sifreler=snap.exists()?snap.data():{huseyin:'1234',ayse:'1234'};
+    if(!snap.exists())await setDoc(doc(db,'ayarlar','sifreler'),sifreler);
+    if(p!==(sifreler[u]||'1234'))return toast('Yanlış şifre','er');
+    user=u;$('loginPg').style.display='none';$('app').style.display='block';
+    $('uNm').textContent=u==='huseyin'?'Hüseyin':'Ayşe';$('uAv').textContent=u[0].toUpperCase();init();
+  }catch(e){
+    // Offline fallback
+    if(p!=='1234')return toast('Yanlış şifre','er');
+    user=u;$('loginPg').style.display='none';$('app').style.display='block';
+    $('uNm').textContent=u==='huseyin'?'Hüseyin':'Ayşe';$('uAv').textContent=u[0].toUpperCase();init();
+  }
+};
+window.doLogout=function(){if(!confirm('Çıkış?'))return;user=null;$('app').style.display='none';$('loginPg').style.display='flex';$('loginPg').querySelector('.lcard').style.display='block';$('ayarMenu').style.display='none'};
+
+// Şifre değiştir
+window.saveSifre=async function(){
+  const mevcut=$('sifreMevcut').value,yeni=$('sifreYeni').value,yeni2=$('sifreYeni2').value;
+  if(!mevcut||!yeni)return toast('Tüm alanları doldurun','er');
+  if(yeni!==yeni2)return toast('Yeni şifreler eşleşmiyor','er');
+  if(yeni.length<4)return toast('Şifre en az 4 karakter','er');
+  try{
+    const snap=await getDoc(doc(db,'ayarlar','sifreler'));
+    const sifreler=snap.exists()?snap.data():{huseyin:'1234',ayse:'1234'};
+    if(mevcut!==(sifreler[user]||'1234'))return toast('Mevcut şifre yanlış','er');
+    sifreler[user]=yeni;
+    await setDoc(doc(db,'ayarlar','sifreler'),sifreler);
+    toast('Şifre değiştirildi','ok');clM('sifreM');
+    ['sifreMevcut','sifreYeni','sifreYeni2'].forEach(x=>$(x).value='');
+  }catch(e){toast('Hata: '+e.message,'er')}
+};
+
+// Şifre sıfırla
+window.resetSifre=async function(){
+  const u=$('sifreResetUser').value;
+  if(!confirm(u+' kullanıcısının şifresi 1234 olarak sıfırlanacak. Emin misiniz?'))return;
+  try{
+    const snap=await getDoc(doc(db,'ayarlar','sifreler'));
+    const sifreler=snap.exists()?snap.data():{huseyin:'1234',ayse:'1234'};
+    sifreler[u]='1234';
+    await setDoc(doc(db,'ayarlar','sifreler'),sifreler);
+    toast('Şifre 1234 olarak sıfırlandı','ok');
+    $('sifreUnuttumDiv').style.display='none';
+    $('loginPg').querySelector('.lcard').style.display='block';
+  }catch(e){toast('Hata: '+e.message,'er')}
+};
+
+// Kasa bakiye düzenle
+window.openKasaBasDuzenle=function(){
+  $('kasaMevcutBak').textContent='₺'+F(kasaBas);
+  $('kasaBasYeniTut').value=kasaBas||'';
+  openModal('kasaBasDuzenleM');
+};
+window.saveKasaBasDuzenle=async function(){
+  const yeni=+$('kasaBasYeniTut').value||0;
+  try{await setDoc(doc(db,'ayarlar','kasa'),{baslangic:yeni});kasaBas=yeni;toast('Kasa bakiyesi güncellendi: ₺'+F(yeni),'ok');clM('kasaBasDuzenleM');rKasa();rHome()}catch(e){toast('Hata','er')}
+};
+
+// Cari düzenle
+window.editCari=function(){
+  if(!selCari)return;const c=cari.find(x=>x.id===selCari);if(!c)return;
+  $('cariEid').value=c.id;$('cariMT').textContent='Cari Düzenle';
+  $('cAd').value=c.ad||'';$('cTur').value=c.tur||'musteri';$('cTel').value=c.tel||'';$('cAdr').value=c.adres||'';
+  openModal('cariM');
+};
+
+// Cari sil
+window.deleteCari=async function(){
+  if(!selCari)return;const c=cari.find(x=>x.id===selCari);if(!c)return;
+  const b=bal(selCari);
+  let msg='\"'+c.ad+'\" carisini silmek istediğinize emin misiniz?';
+  if(b.net!==0)msg+='\n\n⚠ Bu carinin ₺'+F(Math.abs(b.net))+' bakiyesi var!';
+  if(!confirm(msg))return;
+  try{await deleteDoc(doc(db,'cari',selCari));toast(c.ad+' silindi','ok');closeCariDet()}catch(e){toast('Hata: '+e.message,'er')}
+};
 
 // ============ NAV ============
 window.nav=function(p){document.querySelectorAll('.pg').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.bot .ni').forEach(x=>x.classList.remove('on'));const el=$('pg'+p);if(el)el.classList.add('on');const i=['Home','Kasa','Stok','Cari','Fatura','Islem'].indexOf(p);const ns=document.querySelectorAll('.bot .ni');if(ns[i])ns[i].classList.add('on');if(p==='Cari')closeCariDet();if(p==='Stok')closeStokDet()};
@@ -401,6 +509,8 @@ window.openModal=function(id){$(id).classList.add('on');
 };
 window.clMO=function(e){if(e.target.classList.contains('mo'))e.target.classList.remove('on')};
 function clM(id){$(id).classList.remove('on')}
+
+document.addEventListener('click',function(e){const m=$('ayarMenu');if(m&&m.style.display==='block'&&!e.target.closest('.ub')&&!e.target.closest('#ayarMenu'))m.style.display='none'});
 
 // Event listeners
 $('odeYnt').onchange=function(){$('odeVadeG').style.display=(this.value==='cek'||this.value==='kart')?'block':'none'};
